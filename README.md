@@ -8,9 +8,9 @@ Climate Chronicle is a data visualization project aimed at exploring global temp
 - Time-series analysis of temperature trends.
 - Customizable visualization settings.
 
-## Installation
-
-
+## Usage
+Visit <a href="https://ivonaaa.github.io/Climate-Chronicle/">this link</a> to view.
+ 
 ## Usage
 - Use the slider to navigate through different years and observe the temperature changes.
 - Hover over data points to view detailed information.
