@@ -1,7 +1,7 @@
 # Climate Chronicle
 
 ## Overview
-Climate Chronicle is a data visualization project aimed at exploring global temperature trends from 1850 to 2024 using HTML, D3.js, and CSS. This project provides an interactive platform to visualize the changing climate patterns over the years.
+Climate Chronicle is a data visualization project aimed at exploring global temperature trends from 1940 to 2024 using HTML, D3.js, and CSS. This project provides an interactive platform to visualize the changing climate patterns over the years.
 
 ## Features
 - Interactive visualization of global temperature data.
@@ -12,6 +12,4 @@ Climate Chronicle is a data visualization project aimed at exploring global temp
 Visit <a href="https://ivonaaa.github.io/Climate-Chronicle/">this link</a> to view.
  
 ## Usage
-- Use the slider to navigate through different years and observe the temperature changes.
 - Hover over data points to view detailed information.
-- Click on countries to see relevant country data.
