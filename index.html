@@ -6,24 +6,23 @@
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
-    <link rel="stylesheet" href="style.css">
     <title>World Average Temperature Visualization</title>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
+            display: flex;
+            flex-direction: row;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            margin: 0;
+        }
+        #container {
+            width: 100%; 
+            height: auto;
+            align-items: center;
         }
         #my_dataviz {
-            width: 80%;
-            height: 80%;
-            margin: auto;
-            display: block;
-            position: relative;
+            width: 100%;
         }
-        /* Tooltip styling */
         #tooltip {
             position: absolute;
             background-color: rgba(255, 255, 255, 0.8);
@@ -31,113 +30,165 @@
             border-radius: 5px;
             padding: 10px;
             pointer-events: none;
-            z-index: 999;
         }
-
-        /* Hide the tooltip by default */
         .hidden {
             display: none;
         }
-
-        /* Country borders */
         .country-border {
             fill: none;
             stroke: #fff; /* Border color */
-            stroke-width: 1px; /* Border width */
+            stroke-width: 2px; /* Border width */
+        }
+        .legend {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            width: 70%; /* Adjusted width to match the map */
+            height: auto; /* Set height to auto */
+        }
+        .legend-gradient {
+            width: 100%;
+            height: 20px;
+            border-radius: 20%;
+            background-image: linear-gradient(to right, #053061, #2166ac, #4393c3, #92c5de, #d1e5f0, #ffffbf, #fddbc7, #f4a582, #d6604d, #b2182b, #67001f);
+        }
+        .left {
+            width: 40%;
+            height: 100%;
+            background-color: #053061; /* Blue background */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box; /* Ensure padding doesn't affect width */
+        }
+        .right {
+            display: flex;
+            flex-direction: column;
+            width: 60%;
+            height: auto;
         }
     </style>
 </head>
 <body>
-<h1 class="white center padding">Average temperatures across the world</h1>
-<svg id="my_dataviz"></svg>
+    <div class="left">
+        <h1 class="white center padding">Average temperatures across the world</h1>
+        <div id="legend" class="legend">
+            <div class="legend-gradient"></div>
+            <div class="legend-labels"></div>
+        </div>
+    </div>
+    
+    
+    <div class="right">
+        <div id="container">
+                <svg id="my_dataviz"></svg>
+            </div>
+    </div>
 
-<div id="tooltip" class="hidden"></div>
+    <div id="tooltip" class="hidden"></div>
 
-<script>
-    // The svg
-    var svg = d3.select("svg"),
-        width = window.innerWidth * 0.8, // 80% of the window width
-        height = window.innerHeight * 0.8; // 80% of the window height
-
-    svg.attr("width", width)
-        .attr("height", height);
-
-    // Map and projection
-    var path = d3.geoPath();
-    var projection = d3.geoMercator()
-        .scale(120) // Adjusted scale for better fit
-        .center([0,20])
-        .translate([width / 2, height / 2]); // Centering the map
-
-    // Data and color scale
-    var data = new Map();
-
-    // Load external data and boot
-    d3.queue()
-        .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
-        .defer(d3.csv, "world_temperatures.csv", function(d) {
-            // Parse the date string to extract the month
-            var parsedDate = new Date(d.Day);
-            var month = parsedDate.getMonth() + 1; // getMonth() returns 0-based index, so we add 1
-
-            // Store the data with the extracted month
-            data.set(d.Code, {
-                country: d.Entity,
-                temperature: +d["Average surface temperature"],
-                year: d.year,
-                date: d.Day,
-                month: month, // Store the extracted month
-                latitude: +d["Average surface temperature"],
-                longitude: +d["Average surface temperature"]
-            });
-        })
-        .await(ready);
-
-    function ready(error, topo) {
-        // Draw the map
-        svg.append("g")
-            .selectAll("path")
-            .data(topo.features)
-            .enter()
-            .append("path")
-            // draw each country
-            .attr("d", d3.geoPath()
-                .projection(projection)
-            )
-            // set the fill color based on temperature
-            .attr("fill", function (d) {
-                var countryData = data.get(d.id);
-                return countryData ? d3.interpolateRdYlBu((countryData.temperature + 50) / 100) : "#ccc"; // Adjust the scale factor for better visualization
+    <script>
+        var svg = d3.select("svg"),
+            width = document.getElementById('container').offsetWidth,
+            height = window.innerHeight;
+    
+        svg.attr("width", width)
+            .attr("height", height);
+    
+        var zoom = d3.zoom()
+            .scaleExtent([1, 8])
+            .on("zoom", zoomed);
+    
+        svg.call(zoom);
+    
+        var g = svg.append("g");
+    
+        function zoomed() {
+            g.attr("transform", d3.event.transform);
+        }
+    
+        var path = d3.geoPath();
+        var projection = d3.geoMercator()
+            .scale(150)
+            .translate([width / 2, height / 2]);
+    
+        var data = new Map();
+    
+        d3.queue()
+            .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+            .defer(d3.csv, "world_temperatures.csv", function(d) {
+                var parsedDate = new Date(d.Day);
+                var month = parsedDate.getMonth() + 1;
+    
+                data.set(d.Code, {
+                    country: d.Entity,
+                    temperature: +d["Average surface temperature"],
+                    year: d.year,
+                    date: d.Day,
+                    month: month,
+                    latitude: +d["Average surface temperature"],
+                    longitude: +d["Average surface temperature"]
+                });
             })
-            .attr("class", "country") // Add class for hover effect
-            // show tooltip on hover
-            .on("mouseover", function(d) {
-                var countryData = data.get(d.id);
-                if (countryData) {
-                    var tooltipHTML = "<strong>Country:</strong> " + countryData.country + "<br>" +
-                        "<strong>Average Temperature:</strong> " + (countryData.temperature ? countryData.temperature + "°C" : "No data available") + "<br>" +
-                        "<strong>Year:</strong> " + (countryData.year ? countryData.year : "No data available") + "<br>" +
-                        "<strong>Month:</strong> " + (countryData.month ? countryData.month : "No data available");
-
-                    d3.select("#tooltip")
-                        .style("left", (d3.event.pageX + 10) + "px")
-                        .style("top", (d3.event.pageY - 30) + "px")
-                        .html(tooltipHTML);
-                    d3.select("#tooltip").classed("hidden", false);
-                } else {
-                    var tooltipHTML = "<strong>No data available.</strong> ";
-
-                    d3.select("#tooltip")
-                        .style("left", (d3.event.pageX + 10) + "px")
-                        .style("top", (d3.event.pageY - 30) + "px")
-                        .html(tooltipHTML);
-                    d3.select("#tooltip").classed("hidden", false);
-                }
-            })
-            .on("mouseout", function() {
-                d3.select("#tooltip").classed("hidden", true);
-            });
-    }
-</script>
+            .await(ready);
+    
+        function ready(error, topo) {
+            var colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
+                .domain([d3.max([...data.values()], d => d.temperature), d3.min([...data.values()], d => d.temperature)]);
+    
+            g.selectAll("path")
+                .data(topo.features)
+                .enter()
+                .append("path")
+                .attr("d", d3.geoPath()
+                    .projection(projection)
+                )
+                .attr("fill", function (d) {
+                    var countryData = data.get(d.id);
+                    return countryData ? colorScale(countryData.temperature) : "#ccc";
+                })
+                .attr("class", "country")
+                .on("mouseover", function(d) {
+                    var countryData = data.get(d.id);
+                    if (countryData) {
+                        var tooltipHTML = "<strong>Country:</strong> " + countryData.country + "<br>" +
+                            "<strong>Average Temperature:</strong> " + (countryData.temperature ? countryData.temperature + "°C" : "No data available") + "<br>" +
+                            "<strong>Year:</strong> " + (countryData.year ? countryData.year : "No data available") + "<br>" +
+                            "<strong>Month:</strong> " + (countryData.month ? countryData.month : "No data available");
+    
+                        d3.select("#tooltip")
+                            .style("left", (d3.event.pageX + 10) + "px")
+                            .style("top", (d3.event.pageY - 30) + "px")
+                            .html(tooltipHTML);
+                        d3.select("#tooltip").classed("hidden", false);
+                    } else {
+                        var tooltipHTML = "<strong>No data available.</strong> ";
+    
+                        d3.select("#tooltip")
+                            .style("left", (d3.event.pageX + 10) + "px")
+                            .style("top", (d3.event.pageY - 30) + "px")
+                            .html(tooltipHTML);
+                        d3.select("#tooltip").classed("hidden", false);
+                    }
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip").classed("hidden", true);
+                });
+    
+            var legendLabels = d3.select(".legend-labels");
+            var colorRange = colorScale.range();
+            for (var i = 0; i < colorRange.length; i++) {
+                var label = legendLabels.append("div")
+                    .style("background-color", colorRange[i])
+                    .style("flex", "1")
+                    .style("height", "10px");
+            }
+        }
+    </script>
+    
 </body>
 </html>
