@@ -29,9 +29,8 @@
             <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
             <input type="range" id="yearSlider" min="1940" max="2024" value="2024" step="1">
         </div>
+        <div id="tooltip" class="hidden"></div>
     </div>
-
-    <div id="tooltip" class="hidden"></div>
 
     <script>
         var svg = d3.select("svg"),
