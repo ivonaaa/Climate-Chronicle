@@ -9,6 +9,8 @@ body, html {
     width: 100%; 
     height: auto;
     align-items: center;
+    z-index: 9;
+    position: absolute;
 }
 #my_dataviz {
     width: 100%;
@@ -56,10 +58,12 @@ body, html {
     box-sizing: border-box; 
 }
 .right {
+    position: relative;
     display: flex;
-    flex-direction: column;
     width: 60%;
     height: auto;
+    align-items: center;
+    justify-content: center;
 }
 #lineChartContainer, #barChartContainer {
     padding: 10px;
@@ -69,4 +73,19 @@ body, html {
     fill: none; 
     stroke: white; 
     stroke-width: 2px; 
+}
+.slider-container {
+    position: absolute;
+    z-index: 10;
+    bottom: 2%;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#yearSlider {
+    width: 70%;
+}
+.slider-label {
+    margin-bottom: 5px;
 }

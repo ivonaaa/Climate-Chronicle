@@ -24,6 +24,10 @@
     <div class="right">
         <div id="container">
             <svg id="my_dataviz"></svg>
+        </div> 
+        <div class="slider-container">
+            <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
+            <input type="range" id="yearSlider" min="1940" max="2024" value="2024" step="1">
         </div>
     </div>
 
@@ -64,7 +68,6 @@
             .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
             .defer(d3.csv, "world_temperatures.csv", function(d) {
                 var parsedDate = new Date(d.Day);
-                var month = parsedDate.getMonth() + 1;
                 var countryCode = d.Code; 
                 var countryName = d.Entity; 
                 var countryIndex = data.findIndex(function(country) {
@@ -75,14 +78,34 @@
                     data.push({
                         countryCode: countryCode,
                         countryName: countryName,
-                        temperatures: [{ year: d.year, month: month, averageTemp: +d["Average surface temperature"] }]
+                        temperatures: [{ year: d.year, averageTemp: +d["Average surface temperature"] }]
                     });
                 } else {
-                    data[countryIndex].temperatures.push({ year: d.year, month: month, averageTemp: +d["Average surface temperature"] });
+                    data[countryIndex].temperatures.push({ year: d.year, averageTemp: +d["Average surface temperature"] });
                 }
             })
             .await(ready);
-    
+
+        function updateMap(selectedYear) {
+            var allTemperatures = data.flatMap(country => 
+                country.temperatures.filter(temp => temp.year == selectedYear).map(temp => temp.averageTemp)
+            );
+            
+            var colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
+                .domain([d3.max(allTemperatures), d3.min(allTemperatures)]);
+
+            g.selectAll("path")
+                .attr("fill", function (d) {
+                    var countryData = data.find(function(country) {
+                        return country.countryCode === d.id;
+                    });
+                    var tempData = countryData ? countryData.temperatures.find(function(temp) {
+                        return temp.year == selectedYear;
+                    }) : null;
+                    return tempData ? colorScale(tempData.averageTemp) : "#ccc";
+                });
+        }
+
         function ready(error, topo) {
             var allTemperatures = data.flatMap(country => country.temperatures.map(temp => temp.averageTemp));
             var colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
@@ -99,18 +122,23 @@
                     var countryData = data.find(function(country) {
                         return country.countryCode === d.id;
                     });
-                    return countryData ? colorScale(countryData.temperatures[countryData.temperatures.length - 1].averageTemp) : "#ccc";
+                    var tempData = countryData ? countryData.temperatures.find(function(temp) {
+                        return temp.year == 2024;
+                    }) : null;
+                    return tempData ? colorScale(tempData.averageTemp) : "#ccc";
                 })
                 .attr("class", "country")
                 .on("mouseover", function(d) {
                     var countryData = data.find(function(country) {
                         return country.countryCode === d.id;
                     });
-                    if (countryData) {
+                    var tempData = countryData ? countryData.temperatures.find(function(temp) {
+                        return temp.year == +document.getElementById("yearSlider").value;
+                    }) : null;
+                    if (tempData) {
                         var tooltipHTML = "<strong>Country:</strong> " + countryData.countryName + "<br>" +
-                            "<strong>Average Temperature:</strong> " + (countryData.temperatures ? countryData.temperatures[countryData.temperatures.length - 1].averageTemp + "°C" : "No data available") + "<br>" +
-                            "<strong>Year:</strong> " + (countryData.temperatures ? countryData.temperatures[countryData.temperatures.length - 1].year : "No data available") + "<br>" +
-                            "<strong>Month:</strong> " + (countryData.temperatures ? countryData.temperatures[countryData.temperatures.length - 1].month : "No data available");
+                            "<strong>Average Temperature:</strong> " + tempData.averageTemp + "°C" + "<br>" +
+                            "<strong>Year:</strong> " + tempData.year;
     
                         d3.select("#tooltip")
                             .style("left", (d3.event.pageX + 10) + "px")
@@ -140,6 +168,8 @@
                     .style("flex", "1")
                     .style("height", "10px");
             }
+
+            updateMap(2024); // Initial map update for 2024
         }
 
         function drawLineChart(countryData) {
@@ -163,7 +193,7 @@
             var line = d3.line()
                 .x(function(d) { return x(d.year); })
                 .y(function(d) { return y(d.averageTemp); })
-                .curve(d3.curveLinear); 
+                .curve(d3.curveLinear);
 
             var path = svg.append("path")
                 .datum(temperatures)
@@ -240,26 +270,26 @@
                 .attr("class", "bar")
                 .attr("x", function(d, i) { return x(i === 0 ? "Min Temp" : "Max Temp"); })
                 .attr("width", x.bandwidth())
-                .attr("y", height) // Start from the bottom
-                .attr("height", 0) // Start with zero height
+                .attr("y", height)
+                .attr("height", 0)
                 .attr("fill", "white")
                 .transition()
                 .duration(2000)
-                .attr("y", function(d) { return y(Math.abs(d.averageTemp)); }) // Move to the appropriate y position
-                .attr("height", function(d) { return height - y(Math.abs(d.averageTemp)); }); // Set the correct height
+                .attr("y", function(d) { return y(Math.abs(d.averageTemp)); })
+                .attr("height", function(d) { return height - y(Math.abs(d.averageTemp)); });
 
             svg.selectAll(".label")
                 .data([minTempData, maxTempData])
                 .enter().append("text")
                 .attr("class", "label")
                 .attr("x", function(d, i) { return x(i === 0 ? "Min Temp" : "Max Temp") + x.bandwidth() / 2; })
-                .attr("y", height + 20) // Start from below the chart
+                .attr("y", height + 20)
                 .attr("text-anchor", "middle")
                 .style("fill", "white")
-                .text(function(d) { return `${d.month}/${d.year}\n${d.averageTemp}°C`; })
+                .text(function(d) { return `${d.year}\n${d.averageTemp}°C`; })
                 .transition()
                 .duration(2000)
-                .attr("y", function(d) { return y(Math.abs(d.averageTemp)) - 10; }); // Move to the appropriate y position
+                .attr("y", function(d) { return y(Math.abs(d.averageTemp)) - 10; });
 
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
@@ -271,7 +301,6 @@
                 .style("stroke", "white");
         }
 
-
         function countryClicked(d) {
             var countryCode = d.id;
             console.log("Country Code:", countryCode);
@@ -279,7 +308,7 @@
             var countryData = data.find(function(country) {
                 return country.countryCode === countryCode;
             });
-            console.log("Country Data:", countryData); 
+            console.log("Country Data:", countryData);
 
             d3.select(".countryName")
                 .html(countryData.countryName);
@@ -291,6 +320,14 @@
                 drawBarChart(countryData);
             }
         }
+
+        d3.select("#yearSlider").on("input", function() {
+            var year = +this.value;
+            d3.select("#yearValue").text(year);
+            updateMap(year);
+        });
+
+        updateMap(2024); 
     </script>
 </body>
 </html>
