@@ -87,3 +87,10 @@ body, html {
 .slider-label {
     margin-bottom: 5px;
 }
+.play-button{
+    background-color: #053061;
+    color: #fff;
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 5px;
+}
