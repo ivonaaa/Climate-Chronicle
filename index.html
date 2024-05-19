@@ -28,6 +28,7 @@
         <div class="slider-container">
             <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
             <input type="range" id="yearSlider" min="1940" max="2024" value="2024" step="1">
+            <button id="playButton" class="play-button">Play</button>
         </div>
     </div>
 
@@ -325,6 +326,32 @@
             var year = +this.value;
             d3.select("#yearValue").text(year);
             updateMap(year);
+        });
+
+        var playButton = document.getElementById("playButton");
+        var playing = false;
+        var interval;
+
+        playButton.addEventListener("click", function() {
+            if (!playing) {
+                playing = true;
+                playButton.textContent = "Pause";
+                interval = setInterval(function() {
+                    var currentYear = parseInt(yearSlider.value);
+                    if (currentYear < 2024) {
+                        yearSlider.value = currentYear + 1;
+                    } else {
+                        yearSlider.value = 1940;
+                    }
+                    var selectedYear = yearSlider.value;
+                    yearValue.textContent = selectedYear;
+                    updateMap(selectedYear);
+                }, 1000);
+            } else {
+                playing = false;
+                playButton.textContent = "Play";
+                clearInterval(interval);
+            }
         });
 
         updateMap(2024); 
