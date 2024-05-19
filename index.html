@@ -13,8 +13,6 @@
     <div class="left">
         <h1 class="white center padding">Average temperatures across the world</h1>
         <div id="legend" class="legend">
-            <div class="legend-gradient"></div>
-            <div class="legend-labels"></div>
         </div>
         <p class="countryName"></p>
         <div id="lineChartContainer" class="chart-container"></div>
@@ -108,9 +106,10 @@
         }
 
         function ready(error, topo) {
-            var allTemperatures = data.flatMap(country => country.temperatures.map(temp => temp.averageTemp));
+            var temperatureIntervals = d3.range(-15, 35, 5);
+
             var colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
-                .domain([d3.max(allTemperatures), d3.min(allTemperatures)]);
+                .domain([d3.max(temperatureIntervals), d3.min(temperatureIntervals)]);
 
             g.selectAll("path")
                 .data(topo.features)
@@ -161,16 +160,26 @@
                 })
                 .on("click", countryClicked);
     
-            var legendLabels = d3.select(".legend-labels");
-            var colorRange = colorScale.range();
-            for (var i = 0; i < colorRange.length; i++) {
-                var label = legendLabels.append("div")
-                    .style("background-color", colorRange[i])
-                    .style("flex", "1")
-                    .style("height", "10px");
-            }
+                var legendContainer = d3.select(".legend");
 
-            updateMap(2024); // Initial map update for 2024
+                legendContainer.selectAll("*").remove();
+
+                var legendLabels = legendContainer.append("div")
+                    .attr("class", "legend-labels")
+                    .style("display", "flex")
+                    .style("justify-content", "space-between")
+                    .style("width", "100%");
+
+                temperatureIntervals.forEach(function(temp, index) {
+                    var label = legendLabels.append("div")
+                        .style("background-color", colorScale(temp))
+                        .style("flex", "1")
+                        .style("height", "20px")
+                        .style("text-align", "center")
+                        .text(temp + "°C"); 
+                });
+
+                updateMap(2024);
         }
 
         function drawLineChart(countryData) {
