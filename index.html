@@ -25,8 +25,8 @@
         </div> 
         <div class="slider-container">
             <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
-            <input type="range" id="yearSlider" min="1940" max="2024" value="2024" step="1">
-            <button id="playButton" class="play-button">Play</button>
+            <input type="range" id="yearSlider" class="pointer" min="1940" max="2024" value="2024" step="1">
+            <button id="playButton" class="play-button pointer">Play</button>
         </div>
     </div>
 
@@ -111,54 +111,52 @@
             var colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
                 .domain([d3.max(temperatureIntervals), d3.min(temperatureIntervals)]);
 
-            g.selectAll("path")
-                .data(topo.features)
-                .enter()
-                .append("path")
-                .attr("d", d3.geoPath()
-                    .projection(projection)
-                )
-                .attr("fill", function (d) {
-                    var countryData = data.find(function(country) {
-                        return country.countryCode === d.id;
-                    });
-                    var tempData = countryData ? countryData.temperatures.find(function(temp) {
-                        return temp.year == 2024;
-                    }) : null;
-                    return tempData ? colorScale(tempData.averageTemp) : "#ccc";
-                })
-                .attr("class", "country")
-                .on("mouseover", function(d) {
-                    var countryData = data.find(function(country) {
-                        return country.countryCode === d.id;
-                    });
-                    var tempData = countryData ? countryData.temperatures.find(function(temp) {
-                        return temp.year == +document.getElementById("yearSlider").value;
-                    }) : null;
-                    if (tempData) {
-                        var tooltipHTML = "<strong>Country:</strong> " + countryData.countryName + "<br>" +
-                            "<strong>Average Temperature:</strong> " + tempData.averageTemp + "°C" + "<br>" +
-                            "<strong>Year:</strong> " + tempData.year;
-    
-                        d3.select("#tooltip")
-                            .style("left", (d3.event.pageX + 10) + "px")
-                            .style("top", (d3.event.pageY - 30) + "px")
-                            .html(tooltipHTML);
-                        d3.select("#tooltip").classed("hidden", false);
-                    } else {
-                        var tooltipHTML = "<strong>No data available.</strong> ";
-    
-                        d3.select("#tooltip")
-                            .style("left", (d3.event.pageX + 10) + "px")
-                            .style("top", (d3.event.pageY - 30) + "px")
-                            .html(tooltipHTML);
-                        d3.select("#tooltip").classed("hidden", false);
-                    }
-                })
-                .on("mouseout", function() {
-                    d3.select("#tooltip").classed("hidden", true);
-                })
-                .on("click", countryClicked);
+                g.selectAll("path")
+                    .data(topo.features)
+                    .enter()
+                    .append("path")
+                    .attr("d", d3.geoPath().projection(projection))
+                    .attr("fill", function (d) {
+                        var countryData = data.find(function(country) {
+                            return country.countryCode === d.id;
+                        });
+                        var tempData = countryData ? countryData.temperatures.find(function(temp) {
+                            return temp.year == 2024;
+                        }) : null;
+                        return tempData ? colorScale(tempData.averageTemp) : "#ccc";
+                    })
+                    .attr("class", "country pointer") // Add pointer class here
+                    .on("mouseover", function(d) {
+                        var countryData = data.find(function(country) {
+                            return country.countryCode === d.id;
+                        });
+                        var tempData = countryData ? countryData.temperatures.find(function(temp) {
+                            return temp.year == +document.getElementById("yearSlider").value;
+                        }) : null;
+                        if (tempData) {
+                            var tooltipHTML = "<strong>Country:</strong> " + countryData.countryName + "<br>" +
+                                "<strong>Average Temperature:</strong> " + tempData.averageTemp + "°C" + "<br>" +
+                                "<strong>Year:</strong> " + tempData.year;
+
+                            d3.select("#tooltip")
+                                .style("left", (d3.event.pageX + 10) + "px")
+                                .style("top", (d3.event.pageY - 30) + "px")
+                                .html(tooltipHTML);
+                            d3.select("#tooltip").classed("hidden", false);
+                        } else {
+                            var tooltipHTML = "<strong>No data available.</strong> ";
+
+                            d3.select("#tooltip")
+                                .style("left", (d3.event.pageX + 10) + "px")
+                                .style("top", (d3.event.pageY - 30) + "px")
+                                .html(tooltipHTML);
+                            d3.select("#tooltip").classed("hidden", false);
+                        }
+                    })
+                    .on("mouseout", function() {
+                        d3.select("#tooltip").classed("hidden", true);
+                    })
+                    .on("click", countryClicked);
     
                 var legendContainer = d3.select(".legend");
 
