@@ -158,24 +158,35 @@
                     })
                     .on("click", countryClicked);
     
-                var legendContainer = d3.select(".legend");
+                    var legendContainer = d3.select(".legend");
 
-                legendContainer.selectAll("*").remove();
+                    legendContainer.selectAll("*").remove();
 
-                var legendLabels = legendContainer.append("div")
-                    .attr("class", "legend-labels")
-                    .style("display", "flex")
-                    .style("justify-content", "space-between")
-                    .style("width", "100%");
+                    var legendLabels = legendContainer.append("div")
+                        .attr("class", "legend-labels")
+                        .style("display", "flex")
+                        .style("justify-content", "space-between")
+                        .style("width", "100%");
 
-                temperatureIntervals.forEach(function(temp, index) {
-                    var label = legendLabels.append("div")
-                        .style("background-color", colorScale(temp))
-                        .style("flex", "1")
-                        .style("height", "20px")
-                        .style("text-align", "center")
-                        .text(temp + "°C"); 
-                });
+                    temperatureIntervals.forEach(function(temp, index) {
+                        var label = legendLabels.append("div")
+                            .style("display", "flex")
+                            .style("flex-direction", "column")
+                            .style("align-items", "center")
+                            .style("width", "50px")  
+                            .style("margin", "0px")
+                            .style("flex", "1");  
+
+                        label.append("div")
+                            .style("background-color", colorScale(temp))
+                            .style("width", "100%")
+                            .style("height", "20px");
+
+                        label.append("div")
+                            .style("margin-top", "5px")
+                            .style("text-align", "center")
+                            .text(temp + "°C");
+                    });
 
                 updateMap(2024);
         }
