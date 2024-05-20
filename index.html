@@ -125,7 +125,7 @@
                         }) : null;
                         return tempData ? colorScale(tempData.averageTemp) : "#ccc";
                     })
-                    .attr("class", "country pointer") // Add pointer class here
+                    .attr("class", "country pointer") 
                     .on("mouseover", function(d) {
                         var countryData = data.find(function(country) {
                             return country.countryCode === d.id;
@@ -133,23 +133,42 @@
                         var tempData = countryData ? countryData.temperatures.find(function(temp) {
                             return temp.year == +document.getElementById("yearSlider").value;
                         }) : null;
+
+                        var mouseX = d3.event.pageX;
+                        var mouseY = d3.event.pageY;
+
+                        var mapContainer = document.getElementById("container");
+                        var mapRect = mapContainer.getBoundingClientRect();
+                        var mapCenterX = mapRect.left + mapRect.width / 2;
+
+                        var tooltipX, tooltipY;
+                        var tooltipWidth = 150;
+                        var tooltipOffsetX = 10;
+                        var tooltipOffsetY = -30;
+
+                        if (mouseX > mapCenterX) {
+                            tooltipX = mouseX - tooltipOffsetX - tooltipWidth;
+                        } else {
+                            tooltipX = mouseX + tooltipOffsetX;
+                        }
+
+                        tooltipY = mouseY + tooltipOffsetY;
+
+                        d3.select("#tooltip")
+                            .style("left", tooltipX + "px")
+                            .style("top", tooltipY + "px");
+
                         if (tempData) {
                             var tooltipHTML = "<strong>Country:</strong> " + countryData.countryName + "<br>" +
                                 "<strong>Average Temperature:</strong> " + tempData.averageTemp + "°C" + "<br>" +
                                 "<strong>Year:</strong> " + tempData.year;
 
-                            d3.select("#tooltip")
-                                .style("left", (d3.event.pageX + 10) + "px")
-                                .style("top", (d3.event.pageY - 30) + "px")
-                                .html(tooltipHTML);
+                            d3.select("#tooltip").html(tooltipHTML);
                             d3.select("#tooltip").classed("hidden", false);
                         } else {
                             var tooltipHTML = "<strong>No data available.</strong> ";
 
-                            d3.select("#tooltip")
-                                .style("left", (d3.event.pageX + 10) + "px")
-                                .style("top", (d3.event.pageY - 30) + "px")
-                                .html(tooltipHTML);
+                            d3.select("#tooltip").html(tooltipHTML);
                             d3.select("#tooltip").classed("hidden", false);
                         }
                     })
