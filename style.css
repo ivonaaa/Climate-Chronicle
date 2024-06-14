@@ -99,3 +99,27 @@ body, html {
     align-items: center;
     width: 90%;
 }
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .left, .right {
+        flex: none;
+        width: 100%;
+        padding: 10px;
+    }
+
+    .slider-container {
+        flex-direction: column;
+    }
+
+    .slider {
+        width: 100%;
+    }
+
+    .play-button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
