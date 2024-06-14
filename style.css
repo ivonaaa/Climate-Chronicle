@@ -1,25 +1,21 @@
-/* Ensure the container takes full width and height */
 body, html {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
     height: 100%;
     margin: 0;
     z-index: 0;
 }
-
 #container {
     width: 100%; 
     height: auto;
     align-items: center;
     z-index: 9;
-    position: relative;
+    position: absolute;
 }
-
 #my_dataviz {
     width: 100%;
 }
-
 #tooltip {
     position: absolute;
     z-index: 12; 
@@ -29,29 +25,25 @@ body, html {
     padding: 10px;
     pointer-events: none;
 }
-
 .hidden {
     display: none;
 }
-
 .country-border {
     fill: none;
     stroke: #fff; 
     stroke-width: 2px; 
 }
-
 .legend {
     background-color: rgba(255, 255, 255, 0.3);
     border-radius: 5px;
     padding: 5px;
     margin: 5px;
-    width: 100%; 
+    width: 90%; 
     height: auto; 
 }
-
 .left {
-    width: 100%;
-    height: auto;
+    width: 40%;
+    height: 100%;
     background-color: #053061; 
     color: white;
     display: flex;
@@ -59,59 +51,48 @@ body, html {
     align-items: center;
     box-sizing: border-box; 
 }
-
 .right {
     position: relative;
     display: flex;
-    width: 100%;
+    width: 60%;
     height: auto;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
 }
-
 #lineChartContainer, #barChartContainer {
     margin: 5px;
-    width: 90%;
 }
-
 .line {
     fill: none; 
     stroke: white; 
     stroke-width: 2px; 
 }
-
 .slider-container {
     background-color: rgba(5, 48, 97, 0.2);
     position: absolute;
     z-index: 10;
     border-radius: 5px;
     bottom: 2%;
-    width: 90%;
+    width: 70%;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
 }
-
 #yearSlider {
-    width: 70%;
+    width: 90%;
     margin-bottom: 5px;
 }
-
 .play-button{
     background-color: #053061;
     color: #fff;
     border-radius: 5px;
     padding: 5px;
     margin: 0px 10px;
-    width: 20%;
+    width: 10%;
 }
-
 .pointer {
     cursor: pointer;
 }
-
 .slider{
     display: flex;
     flex-direction: column;
