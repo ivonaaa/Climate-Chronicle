@@ -119,8 +119,7 @@ body, html {
     width: 90%;
 }
 
-/* Media queries for tablets */
-@media screen and (min-width: 768px) {
+@media (max-width: 600px) {
     body {
         display: flex;
         flex-direction: column;
@@ -135,8 +134,7 @@ body, html {
     }
 }
 
-/* Media queries for desktop */
-@media screen and (min-width: 1024px) {
+@media (max-width: 1024px) {
     .left {
         width: 40%;
         height: 100%;
