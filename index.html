@@ -10,30 +10,41 @@
     <title>World Average Temperature Visualization</title>
 </head>
 <body>
-    <div class="left">
-        <h1 class="white center padding">Average temperatures across the world</h1>
-        <div id="legend" class="legend">
-        </div>
-        <p class="countryName"></p>
-        <div id="lineChartContainer" class="chart-container"></div>
-        <div id="barChartContainer" class="chart-container"></div>
-    </div>
-    
-    <div class="right">
-        <div id="container">
-            <svg id="my_dataviz"></svg>
-        </div> 
-        <div class="slider-container">
-            <div class="slider">
-                <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
-                <input type="range" id="yearSlider" class="pointer" min="1940" max="2024" value="2024" step="1">
+    <div id="mainContainer">
+        <div id="main">
+            <div class="left">
+                <h1 class="white center padding">Average temperatures across the world</h1>
+                <div id="legend" class="legend"></div>
+                <p class="countryName"></p>
+                <div id="lineChartContainer" class="chart-container"></div>
+                <div id="barChartContainer" class="chart-container"></div>
             </div>
-            <button id="playButton" class="play-button pointer">Play</button>
+            <div id="container">
+                <svg id="my_dataviz"></svg>
+                <div class="slider-container">
+                    <div class="slider">
+                        <label class="slider-label" for="yearSlider">Year: <span id="yearValue">2024</span></label>
+                        <input type="range" id="yearSlider" class="pointer" min="1940" max="2024" value="2024" step="1">
+                    </div>
+                    <button id="playButton" class="play-button pointer">Play</button>
+                </div>
+            </div> 
+        </div>
+        <div id="compareContainer">
+            <div id="pickCountry">
+                <div id="picker">
+                    <label for="country1">Select Country 1:</label>
+                    <select id="country1" class="country-select"></select>
+                </div>
+                <div id="picker">
+                    <label for="country2">Select Country 2:</label>
+                    <select id="country2" class="country-select"></select>
+                </div>
+            </div>
+            <div id="lineChartContainer1" class="chart-container"></div>
         </div>
     </div>
-
     <div id="tooltip" class="hidden"></div>
-
     <script>
         var svg = d3.select("svg"),
             width = document.getElementById('container').offsetWidth,
@@ -64,6 +75,7 @@
             .translate([width / 2, height / 2]);
     
         var data = [];
+        var currentYear = 2024;
     
         d3.queue()
             .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
@@ -88,6 +100,7 @@
             .await(ready);
 
         function updateMap(selectedYear) {
+            currentYear = selectedYear;
             var allTemperatures = data.flatMap(country => 
                 country.temperatures.filter(temp => temp.year == selectedYear).map(temp => temp.averageTemp)
             );
@@ -210,9 +223,10 @@
                     });
 
                 updateMap(2024);
+                populateCountrySelects();
         }
 
-        function drawLineChart(countryData) {
+        function drawLineChart(countryData, label) {
             var temperatures = countryData.temperatures;
             var years = temperatures.map(function(d) { return d.year; });
             var avgTemps = temperatures.map(function(d) { return d.averageTemp; });
@@ -238,6 +252,7 @@
             var path = svg.append("path")
                 .datum(temperatures)
                 .attr("class", "line")
+                .attr("stroke", "white")
                 .attr("d", line);
 
             var totalLength = path.node().getTotalLength();
@@ -278,6 +293,15 @@
                 .style("text-anchor", "middle")
                 .text("Average Temperature (°C)")
                 .style("fill", "white");
+
+            svg.append("text")
+                .attr("x", (width / 2))
+                .attr("y", 0 - (margin.top / 2))
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("text-decoration", "underline")
+                .style("fill", "white")
+                .text(label);
         }
 
         function drawBarChart(countryData) {
@@ -393,7 +417,168 @@
             }
         });
 
-        updateMap(2024); 
+        function populateCountrySelects() {
+            var countrySelect1 = document.getElementById('country1');
+            var countrySelect2 = document.getElementById('country2');
+
+            data.forEach(function(country) {
+                var option1 = document.createElement('option');
+                option1.value = country.countryCode;
+                option1.text = country.countryName;
+                countrySelect1.appendChild(option1);
+
+                var option2 = document.createElement('option');
+                option2.value = country.countryCode;
+                option2.text = country.countryName;
+                countrySelect2.appendChild(option2);
+            });
+        }
+
+        document.getElementById('country1').addEventListener('change', updateLineCharts);
+        document.getElementById('country2').addEventListener('change', updateLineCharts);
+
+        function updateLineCharts() {
+            var countryCode1 = document.getElementById('country1').value;
+            var countryCode2 = document.getElementById('country2').value;
+
+            var countryData1 = data.find(function(country) {
+                return country.countryCode === countryCode1;
+            });
+            var countryData2 = data.find(function(country) {
+                return country.countryCode === countryCode2;
+            });
+
+            d3.select("#lineChartContainer1").selectAll("svg").remove();
+            if (countryData1 && countryData2) drawLineChartCompare(countryData1, countryData2);
+        }
+
+        function drawLineChartCompare(countryData1, countryData2) {
+            var temperatures1 = countryData1.temperatures;
+            var temperatures2 = countryData2.temperatures;
+
+            var years1 = temperatures1.map(function(d) { return d.year; });
+            var avgTemps1 = temperatures1.map(function(d) { return d.averageTemp; });
+
+            var years2 = temperatures2.map(function(d) { return d.year; });
+            var avgTemps2 = temperatures2.map(function(d) { return d.averageTemp; });
+
+            var allYears = d3.merge([years1, years2]);
+            var allTemps = d3.merge([avgTemps1, avgTemps2]);
+
+            var margin = {top: 20, right: 20, bottom: 50, left: 70},
+                width = 1000 - margin.left - margin.right,
+                height = 550 - margin.top - margin.bottom;  
+
+            var svg = d3.select("#lineChartContainer1").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var x = d3.scaleLinear().domain([d3.min(allYears), d3.max(allYears)]).range([0, width]);
+            var y = d3.scaleLinear().domain([d3.min(allTemps), d3.max(allTemps)]).range([height, 0]);
+
+            var line1 = d3.line()
+                .x(function(d) { return x(d.year); })
+                .y(function(d) { return y(d.averageTemp); })
+                .curve(d3.curveLinear);
+
+            var line2 = d3.line()
+                .x(function(d) { return x(d.year); })
+                .y(function(d) { return y(d.averageTemp); })
+                .curve(d3.curveLinear);
+
+            var path1 = svg.append("path")
+                .datum(temperatures1)
+                .attr("class", "line")
+                .attr("stroke", "blue")
+                .attr("d", line1);
+
+            var path2 = svg.append("path")
+                .datum(temperatures2)
+                .attr("class", "line")
+                .attr("stroke", "red")
+                .attr("d", line2);
+
+            var totalLength1 = path1.node().getTotalLength();
+            var totalLength2 = path2.node().getTotalLength();
+
+            path1
+                .attr("stroke-dasharray", totalLength1 + " " + totalLength1)
+                .attr("stroke-dashoffset", totalLength1)
+                .transition()
+                .duration(2000)
+                .ease(d3.easeLinear)
+                .attr("stroke-dashoffset", 0);
+
+            path2
+                .attr("stroke-dasharray", totalLength2 + " " + totalLength2)
+                .attr("stroke-dashoffset", totalLength2)
+                .transition()
+                .duration(2000)
+                .ease(d3.easeLinear)
+                .attr("stroke-dashoffset", 0);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickSizeOuter(0).tickSizeInner(0).tickPadding(10).tickFormat(d3.format("d")))
+                .selectAll("text")
+                .style("fill", "white");
+
+            svg.append("g")
+                .call(d3.axisLeft(y).tickSizeOuter(10).tickSizeInner(0).tickPadding(10))
+                .selectAll("text")
+                .style("fill", "white");
+
+            svg.selectAll(".domain")
+                .style("stroke", "white");
+
+            svg.append("text")
+                .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 20) + ")")
+                .style("text-anchor", "middle")
+                .text("Year")
+                .style("fill", "white");
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 10)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Average Temperature (°C)")
+                .style("fill", "white");
+
+            var legend = svg.append("g")
+                .attr("class", "legendCompare");
+
+            var text1 = legend.append("text")
+                .attr("x", 10)
+                .attr("y", 15)
+                .attr("fill", "blue")
+                .text(countryData1.countryName);
+
+            var text2 = legend.append("text")
+                .attr("x", 10)
+                .attr("y", 35)
+                .attr("fill", "red")
+                .text(countryData2.countryName);
+
+            var text1Width = text1.node().getBBox().width;
+            var text2Width = text2.node().getBBox().width;
+
+            var rectWidth = Math.max(text1Width, text2Width) + 20; 
+
+            legend.insert("rect", ":first-child")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", rectWidth)
+                .attr("height", 50)
+                .attr("fill", "white")
+                .attr("opacity", 0.5);
+
+            legend.attr("transform", "translate(" + (width - rectWidth - 10) + "," + (height - 60) + ")");
+        }
+
     </script>
 </body>
 </html>
