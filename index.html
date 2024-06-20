@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>World Average Temperature Visualization</title>
 </head>
@@ -45,6 +44,7 @@
         </div>
     </div>
     <div id="tooltip" class="hidden"></div>
+    
     <script>
         var svg = d3.select("svg"),
             width = document.getElementById('container').offsetWidth,
@@ -60,6 +60,13 @@
         svg.call(zoom);
     
         var g = svg.append("g");
+
+        var projection = d3.geoMercator()
+            .scale(150)
+            .translate([width / 2, height / 2]);
+    
+        var data = [];
+        var currentYear = 2024;
     
         function zoomed() {
             var t = d3.event.transform;
@@ -68,14 +75,6 @@
             t.y = Math.min(0, Math.max(t.y, height - height * t.k));
             g.attr("transform", t);
         }
-    
-        var path = d3.geoPath();
-        var projection = d3.geoMercator()
-            .scale(150)
-            .translate([width / 2, height / 2]);
-    
-        var data = [];
-        var currentYear = 2024;
     
         d3.queue()
             .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
@@ -239,7 +238,12 @@
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .style("opacity", 0);
+
+            svg.transition()
+                .duration(1000)  
+                .style("opacity", 1);
 
             var x = d3.scaleLinear().domain([d3.min(years), d3.max(years)]).range([0, width]);
             var y = d3.scaleLinear().domain([d3.min(avgTemps), d3.max(avgTemps)]).range([height, 0]);
@@ -320,7 +324,12 @@
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .style("opacity", 0);
+
+            svg.transition()
+                .duration(1000)  
+                .style("opacity", 1);
 
             var x = d3.scaleBand().range([0, width]).padding(0.1);
             var y = d3.scaleLinear().range([height, 0]);
@@ -374,6 +383,7 @@
             });
             console.log("Country Data:", countryData);
 
+            document.getElementById('my_dataviz').scrollIntoView({ behavior: 'smooth' });
             d3.select(".countryName")
                 .html(countryData.countryName);
             d3.select("#lineChartContainer").selectAll("svg").remove();
@@ -420,6 +430,16 @@
         function populateCountrySelects() {
             var countrySelect1 = document.getElementById('country1');
             var countrySelect2 = document.getElementById('country2');
+
+            var emptyOption1 = document.createElement('option');
+            emptyOption1.value = '';
+            emptyOption1.text = 'Select a country';
+            countrySelect1.appendChild(emptyOption1);
+
+            var emptyOption2 = document.createElement('option');
+            emptyOption2.value = '';
+            emptyOption2.text = 'Select a country';
+            countrySelect2.appendChild(emptyOption2);
 
             data.forEach(function(country) {
                 var option1 = document.createElement('option');
@@ -474,6 +494,8 @@
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            document.getElementById('lineChartContainer1').scrollIntoView({ behavior: 'smooth' });
 
             var x = d3.scaleLinear().domain([d3.min(allYears), d3.max(allYears)]).range([0, width]);
             var y = d3.scaleLinear().domain([d3.min(allTemps), d3.max(allTemps)]).range([height, 0]);
